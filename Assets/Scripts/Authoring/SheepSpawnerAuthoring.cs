@@ -1,30 +1,63 @@
 ﻿using Components;
+using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace Authoring
 {
     public class SheepSpawnerAuthoring : MonoBehaviour
     {
-        [SerializeField] private GameObject sheepPrefab;
         [SerializeField] private int count = 1000;
         [SerializeField] private int rowSize = 40;
-        [SerializeField] private float spacing = 1.5f;
-        
-        private class SheepSpawnerAuthoringBaker : Baker<SheepSpawnerAuthoring>
+        [SerializeField] private float spacing = 2f;
+
+        private class Baker : Baker<SheepSpawnerAuthoring>
         {
             public override void Bake(SheepSpawnerAuthoring authoring)
             {
-                Entity entity = GetEntity(TransformUsageFlags.None);
+                Entity entity = GetEntity(TransformUsageFlags.Dynamic);
 
-                Entity prefabEntity = GetEntity(authoring.sheepPrefab, TransformUsageFlags.Dynamic);
-                
                 AddComponent(entity, new SheepSpawner
                 {
-                    Prefab = prefabEntity,
                     Count = authoring.count,
                     RowSize = authoring.rowSize,
-                    Spacing = authoring.spacing
+                    Spacing = authoring.spacing,
+                });
+
+                BlobBuilder blobBuilder =
+                    new BlobBuilder(Allocator.Temp);
+
+                ref SpawnLayoutBlob root =
+                    ref blobBuilder.ConstructRoot<SpawnLayoutBlob>();
+
+                BlobBuilderArray<float3> positions =
+                    blobBuilder.Allocate(
+                        ref root.Positions,
+                        authoring.count);
+
+                for (int i = 0; i < authoring.count; i++)
+                {
+                    int row = i / authoring.rowSize;
+                    int column = i % authoring.rowSize;
+
+                    positions[i] = new float3(
+                        column * authoring.spacing,
+                        0f,
+                        row * authoring.spacing);
+                }
+
+                BlobAssetReference<SpawnLayoutBlob> blobReference =
+                    blobBuilder.CreateBlobAssetReference<SpawnLayoutBlob>(
+                        Allocator.Persistent);
+
+                blobBuilder.Dispose();
+
+                AddBlobAsset(ref blobReference, out _);
+
+                AddComponent(entity, new SpawnLayout
+                {
+                    Value = blobReference
                 });
             }
         }

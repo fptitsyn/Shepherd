@@ -11,39 +11,30 @@ namespace Systems
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<SheepSpawner>();
+            state.RequireForUpdate<PrefabHolder>();
         }
 
         public void OnUpdate(ref SystemState state)
         {
-            SheepSpawner spawner = SystemAPI.GetSingleton<SheepSpawner>();
+            PrefabHolder prefabs = SystemAPI.GetSingleton<PrefabHolder>();
+            Entity spawnerEntity = SystemAPI.GetSingletonEntity<SheepSpawner>();
+            SpawnLayout layout = SystemAPI.GetComponent<SpawnLayout>(spawnerEntity);
 
-            NativeArray<Entity> sheep = new NativeArray<Entity>(spawner.Count, Allocator.Temp);
+            ref BlobArray<float3> positions = ref layout.Value.Value.Positions;
 
-            state.EntityManager.Instantiate(spawner.Prefab, sheep);
+            EntityCommandBuffer ecb = new EntityCommandBuffer(Allocator.Temp);
 
-            for (int i = 0; i < sheep.Length; i++)
+            for (int i = 0; i < positions.Length; i++)
             {
-                int row = i / spawner.RowSize;
-                int column = i % spawner.RowSize;
-
-                float width = spawner.RowSize * spawner.Spacing;
-                float3 position = new float3(
-                    column * spawner.Spacing - width * 0.5f,
-                    1f,
-                    row * spawner.Spacing - width * 0.5f);
-
-                LocalTransform transform = state.EntityManager.GetComponentData<LocalTransform>(sheep[i]);
-
-                transform.Position = position;
-
-                state.EntityManager.SetComponentData(sheep[i], transform);
+                Entity sheep = ecb.Instantiate(prefabs.SheepPrefab);
+                float3 position = positions[i];
+                ecb.SetComponent(sheep, LocalTransform.FromPosition(position));
             }
 
-            sheep.Dispose();
+            ecb.DestroyEntity(spawnerEntity);
 
-            Entity spawnerEntity = SystemAPI.GetSingletonEntity<SheepSpawner>();
-
-            state.EntityManager.DestroyEntity(spawnerEntity);
+            ecb.Playback(state.EntityManager);
+            ecb.Dispose();
         }
     }
 }
