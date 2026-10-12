@@ -10,6 +10,6 @@ namespace Components
 
     public struct SpawnLayout : IComponentData
     {
-        public BlobAssetReference<SpawnLayoutBlob> Value;
+        public BlobAssetReference<SpawnLayoutBlob> BlobReference;
     }
 }

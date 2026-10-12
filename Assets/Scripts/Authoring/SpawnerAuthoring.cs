@@ -25,16 +25,9 @@ namespace Authoring
                     Spacing = authoring.spacing,
                 });
 
-                BlobBuilder blobBuilder =
-                    new BlobBuilder(Allocator.Temp);
-
-                ref SpawnLayoutBlob root =
-                    ref blobBuilder.ConstructRoot<SpawnLayoutBlob>();
-
-                BlobBuilderArray<float3> positions =
-                    blobBuilder.Allocate(
-                        ref root.Positions,
-                        authoring.count);
+                BlobBuilder blobBuilder = new BlobBuilder(Allocator.Temp);
+                ref SpawnLayoutBlob root = ref blobBuilder.ConstructRoot<SpawnLayoutBlob>();
+                BlobBuilderArray<float3> positions = blobBuilder.Allocate(ref root.Positions, authoring.count);
 
                 for (int i = 0; i < authoring.count; i++)
                 {
@@ -51,12 +44,11 @@ namespace Authoring
                     blobBuilder.CreateBlobAssetReference<SpawnLayoutBlob>(Allocator.Persistent);
 
                 blobBuilder.Dispose();
-
                 AddBlobAsset(ref blobReference, out _);
 
                 AddComponent(entity, new SpawnLayout
                 {
-                    Value = blobReference
+                    BlobReference = blobReference
                 });
             }
         }

@@ -20,7 +20,7 @@ namespace Systems
             Entity spawnerEntity = SystemAPI.GetSingletonEntity<Spawner>();
             SpawnLayout layout = SystemAPI.GetComponent<SpawnLayout>(spawnerEntity);
 
-            ref BlobArray<float3> positions = ref layout.Value.Value.Positions;
+            ref BlobArray<float3> positions = ref layout.BlobReference.Value.Positions;
 
             EntityCommandBuffer ecb = new EntityCommandBuffer(Allocator.Temp);
 

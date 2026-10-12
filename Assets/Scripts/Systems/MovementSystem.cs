@@ -35,7 +35,6 @@ namespace Systems
                 }
 
                 direction = math.normalize(direction);
-
                 transform.ValueRW.Position += direction * speed.ValueRO.Value * deltaTime;
             }
         }
