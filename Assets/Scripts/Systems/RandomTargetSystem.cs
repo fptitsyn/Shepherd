@@ -6,7 +6,7 @@ using Unity.Mathematics;
 namespace Systems
 {
     [BurstCompile]
-    public partial struct RandomSheepTargetSystem : ISystem
+    public partial struct RandomTargetSystem : ISystem
     {
         private float _timer;
         private Random _random;
@@ -14,7 +14,10 @@ namespace Systems
         public void OnCreate(ref SystemState state)
         {
             _timer = 0f;
-            _random = Random.CreateFromIndex(12345);
+            _random = new Random()
+            {
+                state = (uint)UnityEngine.Random.Range(1, 100000)
+            };
         }
 
         [BurstCompile]
@@ -40,9 +43,9 @@ namespace Systems
                     continue;
                 }
                 
-                float3 herdTarget = target.ValueRO.Position;
+                float3 commonTarget = target.ValueRO.Position;
 
-                target.ValueRW.Position = herdTarget + new float3(
+                target.ValueRW.Position = commonTarget + new float3(
                     _random.NextFloat(-15f, 15f),
                     0f,
                     _random.NextFloat(-15f, 15f));

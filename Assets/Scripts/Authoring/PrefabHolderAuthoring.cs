@@ -16,9 +16,7 @@ namespace Authoring
 
                 AddComponent(entity, new PrefabHolder
                 {
-                    SheepPrefab = GetEntity(
-                        authoring.sheepPrefab,
-                        TransformUsageFlags.Dynamic)
+                    SheepPrefab = GetEntity(authoring.sheepPrefab, TransformUsageFlags.Dynamic)
                 });
             }
         }

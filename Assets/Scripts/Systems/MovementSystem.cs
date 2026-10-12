@@ -7,7 +7,7 @@ using Unity.Transforms;
 namespace Systems
 {
     [BurstCompile]
-    public partial struct SheepMovementSystem : ISystem
+    public partial struct MovementSystem : ISystem
     {
         [BurstCompile]
         public void OnCreate(ref SystemState state)
@@ -35,7 +35,6 @@ namespace Systems
                 }
 
                 direction = math.normalize(direction);
-
                 transform.ValueRW.Position += direction * speed.ValueRO.Value * deltaTime;
             }
         }

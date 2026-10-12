@@ -2,7 +2,7 @@
 
 namespace Components
 {
-    public struct SheepSpawner : IComponentData
+    public struct Spawner : IComponentData
     {
         public int Count;
         public int RowSize;

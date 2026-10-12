@@ -6,35 +6,28 @@ using UnityEngine;
 
 namespace Authoring
 {
-    public class SheepSpawnerAuthoring : MonoBehaviour
+    public class SpawnerAuthoring : MonoBehaviour
     {
         [SerializeField] private int count = 1000;
         [SerializeField] private int rowSize = 40;
         [SerializeField] private float spacing = 2f;
 
-        private class Baker : Baker<SheepSpawnerAuthoring>
+        private class Baker : Baker<SpawnerAuthoring>
         {
-            public override void Bake(SheepSpawnerAuthoring authoring)
+            public override void Bake(SpawnerAuthoring authoring)
             {
                 Entity entity = GetEntity(TransformUsageFlags.Dynamic);
 
-                AddComponent(entity, new SheepSpawner
+                AddComponent(entity, new Spawner
                 {
                     Count = authoring.count,
                     RowSize = authoring.rowSize,
                     Spacing = authoring.spacing,
                 });
 
-                BlobBuilder blobBuilder =
-                    new BlobBuilder(Allocator.Temp);
-
-                ref SpawnLayoutBlob root =
-                    ref blobBuilder.ConstructRoot<SpawnLayoutBlob>();
-
-                BlobBuilderArray<float3> positions =
-                    blobBuilder.Allocate(
-                        ref root.Positions,
-                        authoring.count);
+                BlobBuilder blobBuilder = new BlobBuilder(Allocator.Temp);
+                ref SpawnLayoutBlob root = ref blobBuilder.ConstructRoot<SpawnLayoutBlob>();
+                BlobBuilderArray<float3> positions = blobBuilder.Allocate(ref root.Positions, authoring.count);
 
                 for (int i = 0; i < authoring.count; i++)
                 {
@@ -48,16 +41,14 @@ namespace Authoring
                 }
 
                 BlobAssetReference<SpawnLayoutBlob> blobReference =
-                    blobBuilder.CreateBlobAssetReference<SpawnLayoutBlob>(
-                        Allocator.Persistent);
+                    blobBuilder.CreateBlobAssetReference<SpawnLayoutBlob>(Allocator.Persistent);
 
                 blobBuilder.Dispose();
-
                 AddBlobAsset(ref blobReference, out _);
 
                 AddComponent(entity, new SpawnLayout
                 {
-                    Value = blobReference
+                    BlobReference = blobReference
                 });
             }
         }
