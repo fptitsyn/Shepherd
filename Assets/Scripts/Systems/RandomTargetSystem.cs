@@ -14,7 +14,7 @@ namespace Systems
         public void OnCreate(ref SystemState state)
         {
             _timer = 0f;
-            _random = new Random()
+            _random = new Random
             {
                 state = (uint)UnityEngine.Random.Range(1, 100000)
             };
