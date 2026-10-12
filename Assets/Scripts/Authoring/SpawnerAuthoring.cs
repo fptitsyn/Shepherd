@@ -6,19 +6,19 @@ using UnityEngine;
 
 namespace Authoring
 {
-    public class SheepSpawnerAuthoring : MonoBehaviour
+    public class SpawnerAuthoring : MonoBehaviour
     {
         [SerializeField] private int count = 1000;
         [SerializeField] private int rowSize = 40;
         [SerializeField] private float spacing = 2f;
 
-        private class Baker : Baker<SheepSpawnerAuthoring>
+        private class Baker : Baker<SpawnerAuthoring>
         {
-            public override void Bake(SheepSpawnerAuthoring authoring)
+            public override void Bake(SpawnerAuthoring authoring)
             {
                 Entity entity = GetEntity(TransformUsageFlags.Dynamic);
 
-                AddComponent(entity, new SheepSpawner
+                AddComponent(entity, new Spawner
                 {
                     Count = authoring.count,
                     RowSize = authoring.rowSize,
@@ -48,8 +48,7 @@ namespace Authoring
                 }
 
                 BlobAssetReference<SpawnLayoutBlob> blobReference =
-                    blobBuilder.CreateBlobAssetReference<SpawnLayoutBlob>(
-                        Allocator.Persistent);
+                    blobBuilder.CreateBlobAssetReference<SpawnLayoutBlob>(Allocator.Persistent);
 
                 blobBuilder.Dispose();
 

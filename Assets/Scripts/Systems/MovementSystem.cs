@@ -7,7 +7,7 @@ using Unity.Transforms;
 namespace Systems
 {
     [BurstCompile]
-    public partial struct SheepMovementSystem : ISystem
+    public partial struct MovementSystem : ISystem
     {
         [BurstCompile]
         public void OnCreate(ref SystemState state)

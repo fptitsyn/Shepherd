@@ -6,18 +6,18 @@ using Unity.Transforms;
 
 namespace Systems
 {
-    public partial struct SheepSpawnSystem : ISystem
+    public partial struct SpawnSystem : ISystem
     {
         public void OnCreate(ref SystemState state)
         {
-            state.RequireForUpdate<SheepSpawner>();
+            state.RequireForUpdate<Spawner>();
             state.RequireForUpdate<PrefabHolder>();
         }
 
         public void OnUpdate(ref SystemState state)
         {
             PrefabHolder prefabs = SystemAPI.GetSingleton<PrefabHolder>();
-            Entity spawnerEntity = SystemAPI.GetSingletonEntity<SheepSpawner>();
+            Entity spawnerEntity = SystemAPI.GetSingletonEntity<Spawner>();
             SpawnLayout layout = SystemAPI.GetComponent<SpawnLayout>(spawnerEntity);
 
             ref BlobArray<float3> positions = ref layout.Value.Value.Positions;

@@ -6,7 +6,7 @@ using Unity.Mathematics;
 namespace Systems
 {
     [BurstCompile]
-    public partial struct RandomSheepTargetSystem : ISystem
+    public partial struct RandomSheepSystem : ISystem
     {
         private float _timer;
         private Random _random;
