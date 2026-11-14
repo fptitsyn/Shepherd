@@ -2,10 +2,14 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Physics.Systems;
 
 namespace Systems
 {
     [BurstCompile]
+    [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
+    [UpdateAfter(typeof(PhysicsSystemGroup))]
+    [UpdateAfter(typeof(TriggerSystem))]
     public partial struct HealthSystem : ISystem
     {
         private EntityQuery _healthQuery;

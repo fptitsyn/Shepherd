@@ -2,11 +2,15 @@
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Physics;
+using Unity.Physics.Systems;
 using Unity.Transforms;
 
 namespace Systems
 {
     [BurstCompile]
+    [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
+    [UpdateBefore(typeof(PhysicsSystemGroup))]
     public partial struct MovementSystem : ISystem
     {
         private EntityQuery _sheepMovementQuery;
@@ -15,9 +19,11 @@ namespace Systems
         public void OnCreate(ref SystemState state)
         {
             _sheepMovementQuery = SystemAPI.QueryBuilder()
-                .WithAll<Sheep, MoveTarget, MoveSpeed>()
-                .WithAllRW<LocalTransform>()
+                .WithAll<Sheep, MoveTarget, MoveSpeed, LocalTransform>()
+                .WithAllRW<PhysicsVelocity, PhysicsMass>()
                 .Build();
+
+            state.RequireForUpdate(_sheepMovementQuery);
         }
 
         [BurstCompile]
@@ -37,18 +43,28 @@ namespace Systems
             public float DeltaTime;
 
             [BurstCompile]
-            public void Execute(ref LocalTransform transform, in MoveTarget target, in MoveSpeed speed)
+            public void Execute(ref PhysicsVelocity velocity, ref PhysicsMass mass,
+                in LocalTransform transform, in MoveTarget target, in MoveSpeed speed)
             {
-                float3 direction = target.Position - transform.Position;
-                float distance = math.length(direction);
+                mass.InverseInertia = float3.zero;
+                velocity.Angular = float3.zero;
 
-                if (distance < 0.1f)
+                float3 direction = target.Position - transform.Position;
+                direction.y = 0f;
+
+                float distance = math.length(direction);
+                float3 horizontalVelocity = float3.zero;
+
+                if (distance > 0.1f)
                 {
-                    return;
+                    float maxSpeed = (distance - 0.1f) / math.max(DeltaTime, 0.0001f);
+                    float movementSpeed = math.min(math.max(0f, speed.Value), maxSpeed);
+
+                    horizontalVelocity = direction / distance * movementSpeed;
                 }
 
-                direction = math.normalize(direction);
-                transform.Position += direction * speed.Value * DeltaTime;
+                velocity.Linear.x = horizontalVelocity.x;
+                velocity.Linear.z = horizontalVelocity.z;
             }
         }
     }

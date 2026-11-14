@@ -18,6 +18,8 @@ namespace Systems
         {
             PrefabHolder prefabs = SystemAPI.GetSingleton<PrefabHolder>();
             Entity spawnerEntity = SystemAPI.GetSingletonEntity<Spawner>();
+            LocalTransform spawnerTransform = SystemAPI.GetComponent<LocalTransform>(spawnerEntity);
+            LocalTransform prefabTransform = SystemAPI.GetComponent<LocalTransform>(prefabs.SheepPrefab);
             SpawnLayout layout = SystemAPI.GetComponent<SpawnLayout>(spawnerEntity);
 
             ref BlobArray<float3> positions = ref layout.BlobReference.Value.Positions;
@@ -27,8 +29,13 @@ namespace Systems
             for (int i = 0; i < positions.Length; i++)
             {
                 Entity sheep = ecb.Instantiate(prefabs.SheepPrefab);
-                float3 position = positions[i];
-                ecb.SetComponent(sheep, LocalTransform.FromPosition(position));
+
+                float3 position = spawnerTransform.Position + math.rotate(spawnerTransform.Rotation, positions[i]);
+
+                LocalTransform transform = prefabTransform;
+                transform.Position = position;
+
+                ecb.SetComponent(sheep, transform);
             }
 
             ecb.DestroyEntity(spawnerEntity);
