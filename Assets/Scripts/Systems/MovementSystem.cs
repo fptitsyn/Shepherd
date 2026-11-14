@@ -19,7 +19,7 @@ namespace Systems
         public void OnCreate(ref SystemState state)
         {
             _sheepMovementQuery = SystemAPI.QueryBuilder()
-                .WithAll<Sheep, MoveTarget, MoveSpeed, LocalTransform>()
+                .WithAll<Sheep, MoveTarget, MoveSpeed, LocalTransform, Danger>()
                 .WithAllRW<PhysicsVelocity, PhysicsMass>()
                 .Build();
 
@@ -44,12 +44,14 @@ namespace Systems
 
             [BurstCompile]
             public void Execute(ref PhysicsVelocity velocity, ref PhysicsMass mass,
-                in LocalTransform transform, in MoveTarget target, in MoveSpeed speed)
+                in LocalTransform transform, in MoveTarget target, in MoveSpeed speed, in Danger danger)
             {
                 mass.InverseInertia = float3.zero;
                 velocity.Angular = float3.zero;
 
-                float3 direction = target.Position - transform.Position;
+                float3 destination = danger.IsFleeing ? danger.SteeringTarget : target.Position;
+
+                float3 direction = destination - transform.Position;
                 direction.y = 0f;
 
                 float distance = math.length(direction);

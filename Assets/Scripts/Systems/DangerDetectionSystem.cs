@@ -20,8 +20,8 @@ namespace Systems
         public void OnCreate(ref SystemState state)
         {
             _sheepDangerQuery = SystemAPI.QueryBuilder()
-                .WithAll<Sheep, LocalTransform>()
-                .WithAllRW<MoveTarget, Danger>()
+                .WithAll<Sheep, LocalTransform, MoveTarget>()
+                .WithAllRW<Danger>()
                 .Build();
 
             state.RequireForUpdate(_sheepDangerQuery);
@@ -46,17 +46,35 @@ namespace Systems
             [ReadOnly] public PhysicsWorldSingleton World;
             [ReadOnly] public ComponentLookup<Wolf> Wolves;
 
-            public void Execute(Entity entity, ref MoveTarget target, ref Danger danger, in LocalTransform transform)
+            public void Execute(Entity entity, ref Danger danger, in MoveTarget target, in LocalTransform transform)
             {
+                float3 position = transform.Position;
+                float3 toGoal = target.Position - position;
+                toGoal.y = 0f;
+
+                float goalDistanceSq = math.lengthsq(toGoal);
+
+                danger.SteeringTarget = target.Position;
+
+                if (goalDistanceSq < 0.01f)
+                {
+                    danger.IsFleeing = false;
+                    danger.AvoidedWolf = Entity.Null;
+                    danger.AvoidanceSide = 0f;
+                    return;
+                }
+
+                float radius = math.max(0.1f, danger.AvoidanceRadius);
+
                 NativeList<DistanceHit> hits = new NativeList<DistanceHit>(Allocator.Temp);
                 CollisionWorld collisionWorld = World.CollisionWorld;
 
-                collisionWorld.OverlapSphere(transform.Position, danger.DetectionRadius,
+                collisionWorld.OverlapSphere(position, danger.DetectionRadius,
                     ref hits, CollisionFilter.Default, QueryInteraction.Default);
 
-                bool foundWolf = false;
+                Entity blockingWolf = Entity.Null;
+                float3 wolfPosition = float3.zero;
                 float nearestDistanceSq = float.MaxValue;
-                float3 nearestWolfPosition = float3.zero;
 
                 for (int i = 0; i < hits.Length; i++)
                 {
@@ -67,46 +85,78 @@ namespace Systems
                         continue;
                     }
 
-                    float3 wolfPosition = collisionWorld.Bodies[hit.RigidBodyIndex].WorldFromBody.pos;
-                    float distanceSq = math.distancesq(transform.Position, wolfPosition);
+                    float3 candidate = collisionWorld.Bodies[hit.RigidBodyIndex].WorldFromBody.pos;
+                    candidate.y = position.y;
+
+                    float3 toWolf = candidate - position;
+                    float projection = math.saturate(math.dot(toWolf, toGoal) / goalDistanceSq);
+
+                    float3 closestPoint = position + toGoal * projection;
+
+                    if (math.distancesq(closestPoint, candidate) >= radius * radius)
+                    {
+                        continue;
+                    }
+
+                    float distanceSq = math.lengthsq(toWolf);
 
                     if (distanceSq < nearestDistanceSq)
                     {
                         nearestDistanceSq = distanceSq;
-                        nearestWolfPosition = wolfPosition;
-                        foundWolf = true;
+                        blockingWolf = hit.Entity;
+                        wolfPosition = candidate;
                     }
                 }
 
                 hits.Dispose();
 
-                if (!foundWolf)
+                if (blockingWolf == Entity.Null)
                 {
-                    if (danger.IsFleeing)
-                    {
-                        target.Position = transform.Position;
-                    }
-
                     danger.IsFleeing = false;
+                    danger.AvoidedWolf = Entity.Null;
+                    danger.AvoidanceSide = 0f;
                     return;
                 }
 
-                float3 direction = transform.Position - nearestWolfPosition;
-                direction.y = 0f;
+                float3 radial = position - wolfPosition;
+                radial.y = 0f;
 
-                if (math.lengthsq(direction) < 0.0001f)
+                float distance = math.length(radial);
+
+                if (distance < 0.001f)
                 {
-                    uint seed = math.hash(new uint2((uint)entity.Index, (uint)entity.Version));
-                    Random random = new Random(math.max(1u, seed));
-                    float angle = random.NextFloat(0f, 2f * math.PI);
-
-                    direction = new float3(math.cos(angle), 0f, math.sin(angle));
+                    radial = new float3(1f, 0f, 0f);
+                }
+                else
+                {
+                    radial /= distance;
                 }
 
-                direction = math.normalize(direction);
+                float3 tangent = new float3(-radial.z, 0f, radial.x);
 
-                target.Position = transform.Position + direction * danger.EscapeDistance;
+                if (!danger.IsFleeing || danger.AvoidedWolf != blockingWolf)
+                {
+                    float preference = math.dot(tangent, toGoal);
+
+                    if (math.abs(preference) < 0.001f)
+                    {
+                        danger.AvoidanceSide = (entity.Index & 1) == 0 ? 1f : -1f;
+                    }
+                    else
+                    {
+                        danger.AvoidanceSide = preference > 0f ? 1f : -1f;
+                    }
+                }
+
+                float desiredRadius = radius + 0.5f;
+                float correction = math.clamp((desiredRadius - distance) * 1.5f, -0.8f, 2f);
+
+                float3 direction = tangent * danger.AvoidanceSide + radial * correction;
+                direction = math.normalizesafe(direction, radial);
+
+                danger.SteeringTarget = position + direction * math.max(1f, danger.EscapeDistance);
                 danger.IsFleeing = true;
+                danger.AvoidedWolf = blockingWolf;
             }
         }
     }
