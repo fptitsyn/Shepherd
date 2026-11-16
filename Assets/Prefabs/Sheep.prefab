@@ -534,7 +534,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c9132f6fe35a4b43956f7fbbd03e87cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Authoring.SheepAuthoring
-  moveSpeed: 3
+  moveSpeed: 150
   health: 100
   targetPosition: {x: 80, y: 0, z: 80}
   detectionRadius: 5

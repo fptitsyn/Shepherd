@@ -4,14 +4,10 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
-using Unity.Physics.Systems;
 using Unity.Transforms;
 
 namespace Systems
 {
-    [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
-    [UpdateAfter(typeof(PhysicsSystemGroup))]
-    [UpdateBefore(typeof(TriggerSystem))]
     public partial struct DangerDetectionSystem : ISystem
     {
         private EntityQuery _sheepDangerQuery;
@@ -52,10 +48,7 @@ namespace Systems
 
                 if (danger.IsFleeing)
                 {
-                    float3 remaining = danger.SteeringTarget - position;
-                    remaining.y = 0f;
-
-                    if (math.length(remaining) <= 0.3f)
+                    if (math.distancesq(danger.SteeringTarget.xy, position.xy) <= 0.09f)
                     {
                         danger.IsFleeing = false;
                     }
@@ -69,7 +62,7 @@ namespace Systems
                 collisionWorld.OverlapSphere(position, danger.DetectionRadius, ref hits, CollisionFilter.Default);
 
                 bool foundWolf = false;
-                float nearestDistance = float.MaxValue;
+                float nearestDistanceSq = float.MaxValue;
                 float3 nearestWolfPosition = float3.zero;
 
                 for (int i = 0; i < hits.Length; i++)
@@ -82,11 +75,11 @@ namespace Systems
                     }
 
                     float3 wolfPosition = collisionWorld.Bodies[hit.RigidBodyIndex].WorldFromBody.pos;
-                    float distance = math.distance(position, wolfPosition);
+                    float distanceSq = math.distancesq(position, wolfPosition);
 
-                    if (distance < nearestDistance)
+                    if (distanceSq < nearestDistanceSq)
                     {
-                        nearestDistance = distance;
+                        nearestDistanceSq = distanceSq;
                         nearestWolfPosition = wolfPosition;
                         foundWolf = true;
                     }

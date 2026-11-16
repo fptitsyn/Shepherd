@@ -3,14 +3,9 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Physics;
-using Unity.Physics.Systems;
 
 namespace Systems
 {
-    [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
-    [UpdateAfter(typeof(PhysicsSystemGroup))]
-    [UpdateAfter(typeof(DangerDetectionSystem))]
-    [UpdateBefore(typeof(HealthSystem))]
     public partial struct TriggerSystem : ISystem
     {
         [BurstCompile]
@@ -26,7 +21,7 @@ namespace Systems
             {
                 Wolves = SystemAPI.GetComponentLookup<Wolf>(true),
                 SheepLookup = SystemAPI.GetComponentLookup<Sheep>(true),
-                HealthLookup = SystemAPI.GetComponentLookup<Health>(false),
+                HealthLookup = SystemAPI.GetComponentLookup<Health>(),
                 DeltaTime = SystemAPI.Time.DeltaTime
             };
 
@@ -50,20 +45,12 @@ namespace Systems
 
             private void ApplyDamage(Entity wolfEntity, Entity sheepEntity)
             {
-                if (!Wolves.HasComponent(wolfEntity) || !SheepLookup.HasComponent(sheepEntity))
-                {
+                if (!Wolves.HasComponent(wolfEntity) || !SheepLookup.HasComponent(sheepEntity)) 
                     return;
-                }
-
-                if (!HealthLookup.HasComponent(sheepEntity))
-                {
-                    return;
-                }
+                if (!HealthLookup.HasComponent(sheepEntity)) return;
 
                 Health health = HealthLookup[sheepEntity];
-
                 health.Value -= Wolves[wolfEntity].DamagePerSecond * DeltaTime;
-
                 HealthLookup[sheepEntity] = health;
             }
         }

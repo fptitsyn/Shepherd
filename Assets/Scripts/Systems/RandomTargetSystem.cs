@@ -2,13 +2,9 @@
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Physics.Systems;
 
 namespace Systems
 {
-    [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
-    [UpdateBefore(typeof(MovementSystem))]
-    [UpdateBefore(typeof(PhysicsSystemGroup))]
     public partial struct RandomTargetSystem : ISystem
     {
         private EntityQuery _randomTargetQuery;
