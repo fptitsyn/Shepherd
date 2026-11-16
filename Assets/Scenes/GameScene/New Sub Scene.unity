@@ -360,6 +360,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1144566998584892956, guid: 8abdb7adc437012478fd3e0683356831, type: 3}
+      propertyPath: m_ProvidesContacts
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1965795322524209481, guid: 8abdb7adc437012478fd3e0683356831, type: 3}
       propertyPath: m_LocalPosition.x
       value: 60

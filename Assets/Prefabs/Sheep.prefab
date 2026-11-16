@@ -499,7 +499,7 @@ GameObject:
   - component: {fileID: 828095053400460288}
   - component: {fileID: 6374771236267840529}
   - component: {fileID: 8279506994633090222}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Sheep
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -537,7 +537,7 @@ MonoBehaviour:
   moveSpeed: 150
   health: 100
   targetPosition: {x: 80, y: 0, z: 80}
-  detectionRadius: 5
+  detectionRadius: 6
   escapeDistance: 4
 --- !u!136 &6374771236267840529
 CapsuleCollider:

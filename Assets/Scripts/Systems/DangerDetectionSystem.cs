@@ -59,7 +59,13 @@ namespace Systems
                 NativeList<DistanceHit> hits = new NativeList<DistanceHit>(Allocator.Temp);
                 CollisionWorld collisionWorld = World.CollisionWorld;
 
-                collisionWorld.OverlapSphere(position, danger.DetectionRadius, ref hits, CollisionFilter.Default);
+                CollisionFilter filter = new CollisionFilter
+                {
+                    BelongsTo = 1 << 6,
+                    CollidesWith = (1 << 7),
+                    GroupIndex = 0
+                };
+                collisionWorld.OverlapSphere(position, danger.DetectionRadius, ref hits, filter);
 
                 bool foundWolf = false;
                 float nearestDistanceSq = float.MaxValue;
