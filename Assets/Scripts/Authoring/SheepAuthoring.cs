@@ -13,7 +13,6 @@ namespace Authoring
 
         [SerializeField, Min(0.1f)] private float detectionRadius = 8f;
         [SerializeField, Min(0.1f)] private float escapeDistance = 12f;
-        [SerializeField, Min(0.1f)] private float avoidanceRadius = 3f;
 
         private class SheepAuthoringBaker : Baker<SheepAuthoring>
         {
@@ -42,11 +41,8 @@ namespace Authoring
                 {
                     DetectionRadius = authoring.detectionRadius,
                     EscapeDistance = authoring.escapeDistance,
-                    AvoidanceRadius = authoring.avoidanceRadius,
                     IsFleeing = false,
-                    SteeringTarget = authoring.targetPosition,
-                    AvoidedWolf = Entity.Null,
-                    AvoidanceSide = 0f
+                    SteeringTarget = authoring.targetPosition
                 });
             }
         }

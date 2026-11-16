@@ -39,7 +39,7 @@ namespace Systems
             }
 
             _timer %= 3f;
-            _seed = _seed == uint.MaxValue ? 1u : _seed + 1u;
+            _seed = _seed == uint.MaxValue ? 1 : _seed + 1;
 
             RandomTargetJob job = new RandomTargetJob
             {
